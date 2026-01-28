@@ -114,8 +114,14 @@ def draw_clue():
     overlay.fill((0, 0, 0))
     screen.blit(overlay, (0, 0))
 
-    title = font.render("Put Clue Here(press ESC to exit)", True, (255, 255, 255))
-    screen.blit(title, (220, 280))
+    title = font.render("A Clue(press ESC to exit)", True, (255, 255, 255))
+    screen.blit(title, (270, 150))
+    
+    cipher = pygame.image.load("CIPHER.png").convert_alpha()
+    cipher = pygame.transform.scale(cipher, (400, 400))
+    screen.blit(cipher, (200,200))
+    
+    
 
 def draw_debug_zones():
     pygame.draw.rect(screen, (0, 255, 255), bombe_rect, 2)
@@ -141,6 +147,7 @@ def new_puzzle():
     return plaintext, ciphertext
 
 puzzle_answer, puzzle_cipher = new_puzzle() 
+puzzle_active = True
 
 def draw_game_over():
     
@@ -155,7 +162,17 @@ def draw_game_over():
     sub = font.render("Press R to restart or ESC to quit", True, (255,255,255))
     screen.blit(sub,(245,300))
     
+def draw_game_won():
+    overlay = pygame.Surface((800, 600))
+    overlay.set_alpha(220)
+    overlay.fill((0,0,0))
+    screen.blit(overlay, (0,0))
     
+    title = font.render("You Win", True, (255,80,80))
+    screen.blit(title,(350,250))
+    
+    sub = font.render("Press R to restart or ESC to quit", True, (255,255,255))
+    screen.blit(sub,(245,300))
     
 
 
@@ -202,20 +219,38 @@ while running:
                     player_input = ""
                     puzzle_message = ""
                     puzzle_answer, puzzle_cipher = new_puzzle()
-                    
+                    puzzle_active = True
                     Player_x, Player_y = 400, 300
                     
                 
                 elif event.key == pygame.K_ESCAPE:
                     running = False
-                    
                 continue
+                    
+                      
+            elif mode == "game_won":
+                    if event.key == pygame.K_r:
+                        Life = 3
+                        bombe_solved = False
+                        game_won = False
+                        mode = "explore"
+                        player_input = ""
+                        puzzle_message = ""
+                        puzzle_answer, puzzle_cipher = new_puzzle()
+                        puzzle_active = True
+                        Player_x, Player_y = 400, 300
                 
+                                    
+                    elif event.key == pygame.K_ESCAPE:
+                        running = False
+                    continue
+
             elif mode == "puzzle" and event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     mode = "explore"
                     player_input = ""
                     puzzle_message = ""
+                    continue
 
                 elif event.key == pygame.K_RETURN:
                     guess = player_input.strip().upper()
@@ -223,6 +258,7 @@ while running:
                         bombe_solved = True
                         puzzle_message = "Correct! Bombe solved."
                         mode = "explore"
+                        puzzle_active = False
                     else:
                         puzzle_message = "Wrong. Try again."
                         Life -= 1
@@ -242,22 +278,24 @@ while running:
                         player_input += ch
 
             
-    
+        
             if event.key == pygame.K_ESCAPE:
-                if mode != "explore":
+                if mode in ("puzzle", "Locked", "clue"):
                     mode = "explore"
+                    player_input = ""
+                    puzzle_message = ""
                 else:
                     running = False
-
+                continue
             if event.key == pygame.K_e and mode == "explore" and not game_won:
                 if near_bombe and not bombe_solved:
                     mode = "puzzle"
                     player_input = ""
                     puzzle_message = ""
-                    puzzle_answer, puzzle_cipher = new_puzzle()
+
                 elif near_door:
                     if bombe_solved:
-                        game_won = True
+                        mode = "game_won"
                     else:
                         mode = "Locked"
                         hint_text = "Locked! Solve the Bombe first."
@@ -265,7 +303,7 @@ while running:
                     mode = "clue"
 
     # Smooth movement (NOT event-based)
-    if mode == "explore" and not game_won:
+    if mode == "explore":
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
             Player_x -= speed
@@ -300,11 +338,12 @@ while running:
         
     if mode == "game_over":
         draw_game_over()
+    if mode == "game_won":
+        draw_game_won()        
 
-    if game_won:
-        win = font.render("YOU WIN! (ESC to quit)", True, (255, 255, 255))
-        screen.blit(win, (300, 320))
+
 
     pygame.display.update()
-
 pygame.quit()
+
+
