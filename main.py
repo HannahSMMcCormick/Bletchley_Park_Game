@@ -24,7 +24,7 @@ pygame.display.set_icon(icon)
 # Background
 image = pygame.image.load("background.png")
 
-bombe_solved = False      # In this version: means you successfully ACTED on good intel at least once
+bombe_solved = False      
 game_won = False
 mode = "explore"
 hint_text = ""
@@ -318,7 +318,7 @@ def generate_intel(difficulty=1):
 #===========================================================================================================================================
 
 def apply_decision(act: bool):
-    global suspicion, score, missed_critical, difficulty, bombe_solved, Life
+    global suspicion, score, missed_critical, difficulty, bombe_solved, Life, mode
     global status_text, status_timer
 
     if not intel:
@@ -368,11 +368,12 @@ def apply_decision(act: bool):
     #====================================================================
 
     difficulty = 1
-    if suspicion >= 70:
-        difficulty = 2
-    if suspicion >= 90:
+    if suspicion >= 100:
+        mode = "game_over"
+    elif suspicion >= 90:
         difficulty = 3
-
+    elif suspicion >= 70:
+        difficulty = 2
     #====================================================================
     # DEBUG (REMOVE LATER)
     #====================================================================
@@ -440,7 +441,7 @@ while running:
     near_door = player_rect.colliderect(door_rect)
     near_radio = player_rect.colliderect(radio_rect)
 
-    # Hint text (DO NOT change modes here!)
+    # Hint text
     if mode == "explore" and not game_won:
         if near_bombe and not bombe_solved:
             hint_text = "Press E to use the Bombe"
@@ -520,13 +521,15 @@ while running:
                 if event.key == pygame.K_a:
                     apply_decision(True)
                     intel = None
-                    mode = "explore"
+                    if mode != "game_over":
+                        mode = "explore"
+
                 elif event.key == pygame.K_i:
                     apply_decision(False)
                     intel = None
-                    mode = "explore"
+                    if mode != "game_over":
+                        mode = "explore"
 
-                # If life dropped to 0 because of a bad ACT call
                 if Life <= 0:
                     mode = "game_over"
                 continue
@@ -553,7 +556,7 @@ while running:
                     player_input = player_input[:-1]
 
                 else:
-                    # IMPORTANT: allow spaces, because plaintext contains spaces
+                    
                     ch = event.unicode.upper()
                     if (ch.isalpha() or ch == " ") and len(player_input) < 40:
                         player_input += ch
