@@ -24,7 +24,7 @@ pygame.display.set_icon(icon)
 # Background
 image = pygame.image.load("background.png")
 
-bombe_solved = False
+bombe_solved = 0
 game_won = False
 mode = "explore"
 hint_text = ""
@@ -338,13 +338,14 @@ def apply_decision(act: bool):
     #====================================================================
 
     if act:
+        bombe_solved +=1
+        print("Bombe Solved")
         if intel["is_decoy"]:
             score -= 10
             Life -= 1
             status_text = "ACTED: It was a DECOY! Suspicion rose."
         else:
             score += 20 if intel["category"] == "CRITICAL" else 5
-            bombe_solved += 1
             status_text = "ACTED: Success! Intel used."
     else:
         if (not intel["is_decoy"]) and intel["category"] == "CRITICAL":
@@ -429,7 +430,6 @@ missed_critical = 0
 status_text = ""
 status_timer = 0  
 
-bombe_solved = 0
 
 while running:
     clock.tick(60)
@@ -445,7 +445,7 @@ while running:
 
     # Hint text
     if mode == "explore" and not game_won:
-        if near_bombe and not bombe_solved:
+        if near_bombe and bombe_solved < 10:
             hint_text = "Press E to use the Bombe"
         elif near_door:
             hint_text = "Press E to open the door"
@@ -469,7 +469,7 @@ while running:
             if mode == "game_over":
                 if event.key == pygame.K_r:
                     Life = 3
-                    bombe_solved = False
+                    bombe_solved = 0
                     game_won = False
                     mode = "explore"
                     player_input = ""
@@ -487,7 +487,7 @@ while running:
             if mode == "game_won":
                 if event.key == pygame.K_r:
                     Life = 3
-                    bombe_solved = False
+                    bombe_solved = 0
                     game_won = False
                     mode = "explore"
                     player_input = ""
@@ -570,7 +570,7 @@ while running:
 
             if event.key == pygame.K_e and mode == "explore" and not game_won:
 
-                if near_bombe and not bombe_solved:
+                if near_bombe and bombe_solved < 10:
                     mode = "puzzle"
                     player_input = ""
                     puzzle_message = ""
