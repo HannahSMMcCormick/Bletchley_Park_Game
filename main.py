@@ -197,7 +197,7 @@ def draw_clue():
 
     title = font.render("A Clue (press ESC to exit)", True, (255, 255, 255))
     screen.blit(title, (270, 150))
-
+    #Need to do something with this - dont know what yet >: (
     screen.blit(CIPHER_IMG, (200, 200))
     
 def draw_hud():
