@@ -41,6 +41,7 @@ Radio = pygame.transform.scale(Radio, (64, 64))
 
 # Lives
 Heart = pygame.image.load("Heart_life.png").convert_alpha()
+lose = pygame.image.load("Heart_Lost.png").convert_alpha()
 
 # Zones
 bombe_rect = pygame.Rect(30, 80, 740, 100)
@@ -57,9 +58,11 @@ def radio():
     screen.blit(Radio, (30, 420))
 
 def life():
-    screen.blit(Heart, (0, 0))
-    screen.blit(Heart, (30, 0))
-    screen.blit(Heart, (60, 0))
+    for i in range(3):
+        if i < Life:
+            screen.blit(Heart,(i*30,0))
+        else:
+            screen.blit(lose,(i*30,0))
 
 def draw_hint(text):
     if text:
@@ -139,8 +142,26 @@ def new_puzzle():
 
 puzzle_answer, puzzle_cipher = new_puzzle() 
 
-speed = 5  # 0.1 is too slow to notice 
+def draw_game_over():
+    
+    overlay = pygame.Surface((800, 600))
+    overlay.set_alpha(220)
+    overlay.fill((0,0,0))
+    screen.blit(overlay, (0,0))
+    
+    title = font.render("GAME OVER", True, (255,80,80))
+    screen.blit(title,(350,250))
+    
+    sub = font.render("Press R to restart or ESC to quit", True, (255,255,255))
+    screen.blit(sub,(245,300))
+    
+    
+    
+
+
+speed = 5  
 running = True
+Life = 3
 
 while running:
     clock.tick(60)
@@ -164,45 +185,70 @@ while running:
     else:
         hint_text = ""
 
-    # ONE event loop only
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
             
-        
-        if mode == "puzzle" and event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                mode = "explore"
-                player_input = ""
-                puzzle_message = ""
-
-            elif event.key == pygame.K_RETURN:
-                guess = player_input.strip().upper()
-                if guess == puzzle_answer:
-                    bombe_solved = True
-                    puzzle_message = "Correct! Bombe solved."
-                    mode = "explore"
-                else:
-                    puzzle_message = "Wrong. Try again."
-                player_input = ""
-
-            elif event.key == pygame.K_BACKSPACE:
-                player_input = player_input[:-1]
-
-            else:
-                ch = event.unicode.upper()
-                if ch.isalpha() and len(player_input) < 20:
-                    player_input += ch
-
         if event.type == pygame.KEYDOWN:
-            # ESC
+            
+            if mode == "game_over":
+                if event.key == pygame.K_r:
+            
+                    Life = 3
+                    bombe_solved = False
+                    game_won = False
+                    mode = "explore"
+                    player_input = ""
+                    puzzle_message = ""
+                    puzzle_answer, puzzle_cipher = new_puzzle()
+                    
+                    Player_x, Player_y = 400, 300
+                    
+                
+                elif event.key == pygame.K_ESCAPE:
+                    running = False
+                    
+                continue
+                
+            elif mode == "puzzle" and event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    mode = "explore"
+                    player_input = ""
+                    puzzle_message = ""
+
+                elif event.key == pygame.K_RETURN:
+                    guess = player_input.strip().upper()
+                    if guess == puzzle_answer:
+                        bombe_solved = True
+                        puzzle_message = "Correct! Bombe solved."
+                        mode = "explore"
+                    else:
+                        puzzle_message = "Wrong. Try again."
+                        Life -= 1
+                        
+                        if Life <= 0:
+                            mode  = "game_over"
+                    
+                        
+                    player_input = ""
+
+                elif event.key == pygame.K_BACKSPACE:
+                    player_input = player_input[:-1]
+
+                else:
+                    ch = event.unicode.upper()
+                    if ch.isalpha() and len(player_input) < 20:
+                        player_input += ch
+
+            
+    
             if event.key == pygame.K_ESCAPE:
                 if mode != "explore":
                     mode = "explore"
                 else:
                     running = False
 
-            # E interaction
             if event.key == pygame.K_e and mode == "explore" and not game_won:
                 if near_bombe and not bombe_solved:
                     mode = "puzzle"
@@ -251,6 +297,9 @@ while running:
             
     if mode == "clue":
         draw_clue()
+        
+    if mode == "game_over":
+        draw_game_over()
 
     if game_won:
         win = font.render("YOU WIN! (ESC to quit)", True, (255, 255, 255))
