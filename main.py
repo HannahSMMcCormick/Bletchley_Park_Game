@@ -14,7 +14,7 @@ screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("Bletchley Park")
 clock = pygame.time.Clock()
 
-# Font ONCE
+# Font 
 font = pygame.font.SysFont(None, 28)
 
 # Icon
@@ -24,7 +24,7 @@ pygame.display.set_icon(icon)
 # Background
 image = pygame.image.load("background.png")
 
-bombe_solved = False      
+bombe_solved = False
 game_won = False
 mode = "explore"
 hint_text = ""
@@ -61,9 +61,7 @@ CIPHER_IMG = pygame.transform.scale(CIPHER_IMG, (400, 400))
 
 bombe_rect = pygame.Rect(30, 80, 740, 100)
 door_rect  = pygame.Rect(790, 240, 30, 120)
-
-# If you draw the radio at (30, 420) scaled to 64x64, make the rect match
-radio_rect = pygame.Rect(30, 420, 64, 64)
+radio_rect = pygame.Rect(30, 420, 64, 64) # Need something new for this to do 
 
 #============================================================================================================================================
 # DRAW BASIC
@@ -145,7 +143,7 @@ def draw_puzzle_overlay():
         screen.blit(msg, (250, 420))
         
     if intel["cipher_type"] == "ATBASH":
-        hint = font.render("Hint: A ↔ Z, B ↔ Y, C ↔ X", True, (160, 160, 160))
+        hint = font.render("Hint: A = Z, B = Y, C = X", True, (160, 160, 160))
         screen.blit(hint, (60, 300))
         
             
@@ -346,7 +344,7 @@ def apply_decision(act: bool):
             status_text = "ACTED: It was a DECOY! Suspicion rose."
         else:
             score += 20 if intel["category"] == "CRITICAL" else 5
-            bombe_solved = True
+            bombe_solved += 1
             status_text = "ACTED: Success! Intel used."
     else:
         if (not intel["is_decoy"]) and intel["category"] == "CRITICAL":
@@ -357,8 +355,8 @@ def apply_decision(act: bool):
             score += 1
             status_text = "IGNORED: Good restraint."
 
-    # Show message for ~2 seconds
-    status_timer = 120
+    # Show message for 5 seconds
+    status_timer = 300
 
     # Clamp life
     Life = max(0, Life)
@@ -374,6 +372,8 @@ def apply_decision(act: bool):
         difficulty = 3
     elif suspicion >= 70:
         difficulty = 2
+    else:
+        difficulty = 1
     #====================================================================
     # DEBUG (REMOVE LATER)
     #====================================================================
@@ -428,6 +428,8 @@ missed_critical = 0
 
 status_text = ""
 status_timer = 0  
+
+bombe_solved = 0
 
 while running:
     clock.tick(60)
@@ -575,7 +577,7 @@ while running:
                     intel = generate_intel(difficulty=difficulty)
 
                 elif near_door:
-                    if bombe_solved:
+                    if bombe_solved == 10:
                         mode = "game_won"
                     else:
                         mode = "Locked"
